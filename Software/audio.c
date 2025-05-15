@@ -123,7 +123,7 @@ void AUDIO_Fill_Buffer(void)
 
          int p = (p0 * m0 + p1 * m1) / 65536;
 
-         mixer += (vco1_a * p) / 65536;
+         mixer += (vco1_a * p) / 32768;
 
          int32_t vco7_f = SIN[vco7cnt / 16384];
          int32_t vco1_f = SIN[vco1cnt / 16384];

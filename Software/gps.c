@@ -73,6 +73,17 @@ int months[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 char message[256];
 uart_inst_t *gps_uart = uart0;
 
+float d_lat = 0.f;
+float d_lon = 0.f;
+
+float gps_min2dec(float min)
+{
+    float pre = (float)((int)min);
+    float post = min - pre;
+    post *= 1.66666666666f;
+    return pre + post;
+}
+
 bool gps_read(uart_inst_t *uart, char *buf, const size_t max_length)
 {
     bool retval = false;
@@ -124,7 +135,7 @@ bool gps_read(uart_inst_t *uart, char *buf, const size_t max_length)
                 }
                 if (pos == 4)
                 {
-                    north = atof(buf) * 0.01f;
+                    north = gps_min2dec(atof(buf) * 0.01f);
                 }
                 if (pos == 5)
                 {
@@ -135,7 +146,7 @@ bool gps_read(uart_inst_t *uart, char *buf, const size_t max_length)
                 }
                 if (pos == 6)
                 {
-                    east = atof(buf) * 0.01f;
+                    east = gps_min2dec(atof(buf) * 0.01f);
                 }
                 if (pos == 7)
                 {
@@ -280,8 +291,8 @@ float fasterlog10(float x)
 
 void Calc()
 {
-    float d_lat = target.vals.latitude - north;
-    float d_lon = (target.vals.longitude - east) * fact_longitude;
+    d_lat = target.vals.latitude - north;
+    d_lon = (target.vals.longitude - east) * fact_longitude;
     // 1deg = 111km
     distance = sqrtf(d_lon * d_lon + d_lat * d_lat) * 111000.f;
     distance_log = fasterlog10(distance * 0.33f);
@@ -297,7 +308,7 @@ void Calc()
     distance_i = (int)tmp;
     if (distance > 0.1f)
     {
-        dir_target = RAD2DEG * (atan2f(d_lat, d_lon));
+        dir_target = RAD2DEG * (atan2f(d_lon, d_lat));
         dir_rel = dir_target - dir_move;
         if (dir_rel < -180.0f)
         {
@@ -311,6 +322,12 @@ void Calc()
         if (good_i < 1)
         {
             good_i = 1;
+        }
+
+        // always walk
+        if (speed < 1.0f)
+        {
+            good_i = 0;
         }
 
         // -180° ... 180° -> 0°.. 180°
@@ -365,12 +382,6 @@ void Calc()
     fairytime = daytime > (sunrise - 1800) && daytime < (sunrise + 7200);
 }
 
-float Rel_Dir(float lon1, float lon2, float lat1, float lat2, float dir)
-{
-    float d_lon = lon2 - lon1;
-    float d_lat = (lat2 - lat1) * fact_longitude;
-}
-
 void GPS_Init(void)
 {
     uart_init(gps_uart, GPS_BAUDRATE);
@@ -404,6 +415,7 @@ void GPS_Debug(void)
 {
     printf("a:%d n:%4.4f e:%5.4f s:%3.2f dm:%3.2f q:%d sats:%d fix:%d\n", active, north, east, speed, dir_move, quality, sats, fix);
     printf("f:%5.4f dist:%5.4f dist_log:%5.4f dist_i:%d dt:%5.4f dr:%5.4f\n", fact_longitude, distance, distance_log, distance_i, dir_target, dir_rel);
+    printf("dlat:%5.4f dlon:%5.4f\n", d_lat, d_lon);
     printf("dr:%5.4f good_i:%d\n", dir_rel, good_i);
     printf("sunset:%d sunrise:%d time:%d\n", sunset, sunrise, daytime);
 }

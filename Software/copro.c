@@ -82,12 +82,19 @@ void core1_main(void)
             int i1b = 0;
             int i2b = 0;
 
-            if (fix >= 2)
+            
+            if (fix >= 3)
             {
                 i1g = i1 / 8;
                 i2g = i2 / 8;
                 i1b = i1 / 4;
                 i2b = i2 / 4;
+            }
+            else
+            if (fix >= 2)
+            {
+                i1g = i1 / 8;
+                i2g = i2 / 8;
             }
             else
             {
