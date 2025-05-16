@@ -93,8 +93,10 @@ void core1_main(void)
             else
             if (fix >= 2)
             {
-                i1g = i1 / 8;
-                i2g = i2 / 8;
+                i1r = i1 / 8;
+                i2r = i2 / 8;
+                i1b = i1 / 4;
+                i2b = i2 / 4;
             }
             else
             {
@@ -174,7 +176,7 @@ void core1_main(void)
 
         // instead of 3.3V I use 3.278V to correct the resistors tolerance
         volts = 2 * (adc_result_filt * 3278) / 4096;
-        if (volts > 1000 && volts < (4 * 1400))
+        if (volts > 1000 && volts < (4 * 1250))
         {
             if (lowvolt_cnt < 10000)
             {
@@ -185,7 +187,7 @@ void core1_main(void)
                 lowvolt = true;
             }
         }
-        else if (volts > (4 * 1450))
+        else if (volts > (4 * 1280))
         {
             if (lowvolt_cnt > 0)
             {
